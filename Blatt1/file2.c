@@ -30,6 +30,7 @@ void myFork() {
         printf("Prozess 1 verlaesst kritischen Bereich\n");
         sleep(1);
       } 
+    exit(1);
   } else if(z == -1) {
     perror("Fehler");
     exit(1);
@@ -47,6 +48,7 @@ void myFork() {
         printf("Prozess 2 verlaesst kritischen Bereich\n");
         sleep(1);
       } 
+    exit(1);
   }  else if(z == -1) {
     perror("Fehler");
     exit(1);
@@ -64,6 +66,7 @@ void myFork() {
         printf("Prozess 3 verlaesst kritischen Bereich\n");
         sleep(1);
       }    
+    exit(1);
   } else if(z == -1) {
     perror("Fehler");
     exit(1);
@@ -124,7 +127,7 @@ int main() {
   init_sem();
   myFork(); 
 
-
+  
   return 0; 
 } 
 
