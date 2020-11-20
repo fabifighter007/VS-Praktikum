@@ -10,7 +10,7 @@
 
 key_t sem_key;
 int sem_id;
-
+int nextGabel(int);
 
 typedef enum status {DENKEN, ESSEN} STATUS;
 
@@ -20,9 +20,9 @@ typedef struct person {
 } person;
 
 
-void P(int sem_num, int id) {
+void P(int sem_num) {
   struct sembuf semaphore;
-  semaphore.sem_num = id;
+  semaphore.sem_num = sem_num;
   semaphore.sem_op = -1; // P -> -1
   semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
 
@@ -32,9 +32,9 @@ void P(int sem_num, int id) {
   }
 }
 
-void V(int sem_num, int id) {
+void V(int sem_num) {
   struct sembuf semaphore;
-  semaphore.sem_num = id;
+  semaphore.sem_num = sem_num;
   semaphore.sem_op = 1; // V -> 1
   semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
 
@@ -45,13 +45,25 @@ void V(int sem_num, int id) {
 }
 
 void sperreGabel(int id) {
+  printf("Sperre %d \n", id);
+  P(id);
+  P(nextGabel(id));
 }
 
+void freigebenGabel() {
+  printf();
+}
+
+int nextGabel(int id) {
+  return (id+1)%5;
+}
 
 void init_sem() {
-  if(semctl(sem_id, 0, SETVAL, 1) <0) {
-    perror("Fehler bei semctl \n");    
-    exit(1);
+  for(int z=0;z<5;z++) {
+    if(semctl(sem_id, z, SETVAL, 1) <0) {
+      perror("Fehler bei semctl \n");    
+      exit(1);
+    }
   }
 }
 
@@ -60,7 +72,6 @@ int main(){
     perror("Fehler bei ftok \n");
     exit(1);
   }
-
   if((sem_id = semget(sem_key, 5, IPC_CREAT | 0666)) < 0) { 
     perror("Fehler bei semget \n");
     exit(1);
@@ -68,20 +79,10 @@ int main(){
   
   init_sem();
 
-  
-
   person person[5];
   for(int i=0;i<5;i++) {
     person[i].id = i;
     person[i].status = DENKEN;
   }
-
-
-
-
-
-
-
-
-
+  sperreGabel(2);
 }
