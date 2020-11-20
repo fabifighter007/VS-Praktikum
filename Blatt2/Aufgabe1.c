@@ -34,24 +34,25 @@ void neuerStatus(int i) {
 }
 
 void palast() {
-    printf("Betrete Palast\n");
-    time_t t;
-    srand((unsigned) time(&t));
-    while(1) {
-    printf("Starten\n");
-    
+  time_t t;
+  srand((unsigned) time(&t));
+  while(1) {
+
     int r = rand()%5;
     printf("Random %d \n", r);
-    
-    if(person[r].status == DENKEN) {
-      printf("Person %d möchte essen \n", r);
-      P(r+1);
-      person[r].status = ESSEN;
-    } else {
-      printf("Person %d möchte DENKEN \n", r);
-      V(r+1);
-      person[r].status = DENKEN;
-    }
+
+    /*    if(person[r].status == DENKEN) {
+          printf("Person %d möchte essen \n", r);
+          P(r+1);
+          person[r].status = ESSEN;
+          } else {
+          printf("Person %d möchte DENKEN \n", r);
+          V(r+1);
+          person[r].status = DENKEN;
+          }
+          */
+
+
   }
 }
 
@@ -80,23 +81,11 @@ void V(int sem_num) {
   semaphore[1].sem_num = nextGabel(sem_num);
   semaphore[1].sem_op = 1; // V -> 1
   semaphore[1].sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
-  
+
   if(semop(sem_id, semaphore, 2)) {
     perror("Fehler bei V() \n");
     exit(1);
   }
-}
-
-void sperreGabel(int id) {
-  printf("Sperre %d \n", id);
-  P(id);
-  P(nextGabel(id));
-}
-
-void freigebenGabel(int id) {
-  printf("Gebe Gabel frei %d \n", id);
-  V(id);
-  P(nextGabel(id));
 }
 
 int nextGabel(int id) {
@@ -105,7 +94,7 @@ int nextGabel(int id) {
 
 void init_sem() {
   for(int zz=0;zz<5;zz++) {
-      printf("Zahl: %d \n",zz);
+    printf("Zahl: %d \n",zz);
     if(semctl(sem_id, zz, SETVAL, 1) < 0) {
       perror("Fehler bei semctl \n");    
       exit(1);
@@ -115,7 +104,7 @@ void init_sem() {
 }
 
 int main(){
-    if((sem_key = ftok("/home/lars/Dokumente/VS-Praktikum/Blatt2/Aufgabe1.c", '1')) < 0) {
+  if((sem_key = ftok("/home/lars/Dokumente/VS-Praktikum/Blatt2/Aufgabe1.c", '1')) < 0) {
     perror("Fehler bei ftok \n");
     exit(1);
   }
@@ -123,7 +112,7 @@ int main(){
     perror("Fehler bei semget \n");
     exit(1);
   }
-  
+
   printf("initsem()\n");
   init_sem();
 
@@ -132,5 +121,12 @@ int main(){
     person[i].status = DENKEN;
   }
 
-  palast();
+  for(int u=0;u<5;u++) {
+    int z = fork();
+    switch(z) {
+      case 0: printf("Ich bin Philosoph %d mit der PID %d \n", u, getpid()); palast(); exit(0); break; //sohn
+      case -1: perror("Fehler bei fork \n"); exit(1); break; //fehler
+      default: break; //elter
+    }
+  }
 }
