@@ -16,8 +16,37 @@ typedef enum status {DENKEN, ESSEN} STATUS;
 
 typedef struct person {
   int id;
-  enum status status_status;
+  enum status status;
 } person;
+
+
+void P(int sem_num, int id) {
+  struct sembuf semaphore;
+  semaphore.sem_num = id;
+  semaphore.sem_op = -1; // P -> -1
+  semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
+
+  if(semop(sem_id, &semaphore, 1)) {
+    perror("Fehler bei P() \n");
+    exit(1);
+  }
+}
+
+void V(int sem_num, int id) {
+  struct sembuf semaphore;
+  semaphore.sem_num = id;
+  semaphore.sem_op = 1; // V -> 1
+  semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
+
+  if(semop(sem_id, &semaphore, 1)) {
+    perror("Fehler bei V() \n");
+    exit(1);
+  }
+}
+
+void sperreGabel(int id) {
+}
+
 
 void init_sem() {
   if(semctl(sem_id, 0, SETVAL, 1) <0) {
@@ -38,4 +67,21 @@ int main(){
   }
   
   init_sem();
+
+  
+
+  person person[5];
+  for(int i=0;i<5;i++) {
+    person[i].id = i;
+    person[i].status = DENKEN;
+  }
+
+
+
+
+
+
+
+
+
 }
