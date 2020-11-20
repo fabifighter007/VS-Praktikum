@@ -14,6 +14,7 @@ int nextGabel(int);
 void P(int);
 void V(int);
 
+int philID;
 
 typedef enum status {DENKEN, ESSEN} STATUS;
 
@@ -23,23 +24,19 @@ typedef struct person {
   enum status status;
 } person_t;
 
-person_t person[5];
-
-void neuerStatus(int i) {
-  if(person[i].status == 0) {
-    person[i].status = 1;
-  } else {
-    person[i].status = 0;
-  }
-}
 
 void palast() {
   time_t t;
   srand((unsigned) time(&t));
-  while(1) {
-
-    int r = rand()%5;
-    printf("Random %d \n", r);
+  int j = 0;
+  while(j<10) {
+    j++;
+    int r = (rand()%5)+1;
+    P(r);
+    printf("Philisoph %d geht zum essen.\n", r);
+    sleep(1);
+    V(r);
+    printf("Philisoph %d denkt wieder.\n", r);
 
     /*    if(person[r].status == DENKEN) {
           printf("Person %d möchte essen \n", r);
@@ -116,15 +113,10 @@ int main(){
   printf("initsem()\n");
   init_sem();
 
-  for(int i=0;i<5;i++) {
-    person[i].id = i;
-    person[i].status = DENKEN;
-  }
-
   for(int u=0;u<5;u++) {
     int z = fork();
     switch(z) {
-      case 0: printf("Ich bin Philosoph %d mit der PID %d \n", u, getpid()); palast(); exit(0); break; //sohn
+      case 0: printf("Ich bin Philosoph %d mit der PID %d \n", u, getpid()); philID=u; palast(); exit(0); break; //sohn
       case -1: perror("Fehler bei fork \n"); exit(1); break; //fehler
       default: break; //elter
     }
