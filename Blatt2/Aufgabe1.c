@@ -24,20 +24,23 @@ typedef struct person {
   enum status status;
 } person_t;
 
-
-void palast() {
+int randZahl() {
   time_t t;
   srand((unsigned) time(&t));
-  int j = 0;
-  while(j<10) {
-    j++;
-    int r = (rand()%5)+1;
-    P(r);
-    printf("Philisoph %d geht zum essen.\n", r);
-    sleep(1);
-    V(r);
-    printf("Philisoph %d denkt wieder.\n", r);
+  return (rand()%4)+philID; 
+}
 
+void palast() {
+  int j = 0;
+  while(j<5) {
+    j++;
+
+    P(philID);
+    printf("Philisoph %d geht zum essen.\n", philID);
+    sleep(randZahl());
+    V(philID);
+    printf("Philisoph %d denkt wieder.\n", philID);
+    sleep(randZahl());
     /*    if(person[r].status == DENKEN) {
           printf("Person %d möchte essen \n", r);
           P(r+1);
