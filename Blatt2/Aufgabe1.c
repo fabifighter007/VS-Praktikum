@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "sys/types.h"
 #include "sys/ipc.h"
 #include "sys/sem.h"
 #include "sys/stat.h"
 
-
 key_t sem_key;
 int sem_id;
 int nextGabel(int);
+void P(int);
+void V(int);
+
 
 typedef enum status {DENKEN, ESSEN} STATUS;
 
@@ -31,25 +34,25 @@ void neuerStatus(int i) {
 }
 
 void palast() {
-  while(1) {
+    printf("Betrete Palast\n");
     time_t t;
-//    srand((unsinged) time(t));
+    srand((unsigned) time(&t));
+    while(1) {
+    printf("Starten\n");
     
     int r = rand()%5;
+    printf("Random %d \n", r);
+    
     if(person[r].status == DENKEN) {
-      printf("Person %d möchte essen", r);
+      printf("Person %d möchte essen \n", r);
+      P(r+1);
       person[r].status = ESSEN;
     } else {
-      printf("Person %d möchte DENKEN", r);
+      printf("Person %d möchte DENKEN \n", r);
+      V(r+1);
       person[r].status = DENKEN;
     }
-
-/*    sperreGabel(r);
-    neuerStatus(r);
-    sleep(1);
-    V(r);
-  */
-    }
+  }
 }
 
 void P(int sem_num) {
@@ -101,12 +104,14 @@ int nextGabel(int id) {
 }
 
 void init_sem() {
-  for(int z=0;z<5;z++) {
-    if(semctl(sem_id, z, SETVAL, 1) <0) {
+  for(int zz=0;zz<5;zz++) {
+      printf("Zahl: %d \n",zz);
+    if(semctl(sem_id, zz, SETVAL, 1) < 0) {
       perror("Fehler bei semctl \n");    
       exit(1);
     }
   }
+  printf("initsem() fertig\n");
 }
 
 int main(){
@@ -119,13 +124,13 @@ int main(){
     exit(1);
   }
   
+  printf("initsem()\n");
   init_sem();
 
   for(int i=0;i<5;i++) {
     person[i].id = i;
     person[i].status = DENKEN;
   }
-  sperreGabel(2);
-  freigebenGabel(2);
+
   palast();
 }
