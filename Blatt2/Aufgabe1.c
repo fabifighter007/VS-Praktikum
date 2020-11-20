@@ -41,18 +41,6 @@ void palast() {
     V(philID);
     printf("Philisoph %d denkt wieder.\n", philID);
     sleep(randZahl());
-    /*    if(person[r].status == DENKEN) {
-          printf("Person %d möchte essen \n", r);
-          P(r+1);
-          person[r].status = ESSEN;
-          } else {
-          printf("Person %d möchte DENKEN \n", r);
-          V(r+1);
-          person[r].status = DENKEN;
-          }
-          */
-
-
   }
 }
 
