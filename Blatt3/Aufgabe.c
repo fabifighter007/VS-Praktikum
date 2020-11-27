@@ -16,7 +16,24 @@ void V(int);
 void lesezugriff() {
   for(int i=0; i<3;i++) {
     //zugriff auf var - kritischer bereich betreten
-    printf("Leser betritt bereich\n");
+    P(0);
+      int wert = semctl(sem_id, 2, GETVAL);
+      wert++;
+      semctl(sem_id, 2, SETVAL, wert);
+      if(wert == 1) {
+        P(1);
+      }
+      V(0);
+      printf("---lesen---\n");
+      P(0);
+      wert = semctl(sem_id, 2, GETVAL);
+      wert--;
+      semctl(sem_id, 2, SETVAL, wert);
+      if(wert ==0) {
+        V(1);
+      }
+      V(0);
+      printf("Leser betritt bereich\n");
     sleep(1);
     //bereich verlassen
     printf("Leser verlaesst bereich\n");
@@ -27,9 +44,12 @@ void lesezugriff() {
 void schreibzugriff() {
   for(int i=0; i<3; i++) {
     //betreten
+    P(1);
     printf("Schreiber betritt bereich\n");
+    printf("---schreiben---\n");
     sleep(1);
     //verlassen
+    V(1);
     printf("Schreiber verlaesst bereich\n");
     sleep(1);
   }
@@ -37,7 +57,7 @@ void schreibzugriff() {
 
 void P(int sem_num) {
   struct sembuf semaphore;
-  semaphore.sem_num = 0;
+  semaphore.sem_num = sem_num;
   semaphore.sem_op = -1; // P -> -1
   semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
 
@@ -49,7 +69,7 @@ void P(int sem_num) {
 
 void V(int sem_num) {
   struct sembuf semaphore;
-  semaphore.sem_num = 0; //semnum alt
+  semaphore.sem_num = sem_num; //semnum alt
   semaphore.sem_op = 1; // V -> 1
   semaphore.sem_flg = ~(IPC_NOWAIT|SEM_UNDO);
 
@@ -60,13 +80,22 @@ void V(int sem_num) {
 }
 
 void init_sem() {
-  for(int zz=0;zz<5;zz++) {
-    if(semctl(sem_id, zz, SETVAL, 1) < 0) {
+    if(semctl(sem_id, 0, SETVAL, 1) < 0) { //mutex: 1
       perror("Fehler bei semctl \n");    
       exit(1);
     }
-  }
-  printf("initsem() fertig\n");
+
+    if(semctl(sem_id, 1, SETVAL, 1) < 0) { //writer: 1
+      perror("Fehler bei semctl \n");    
+      exit(1);
+    } 
+  
+    
+    if(semctl(sem_id, 2, SETVAL, 0) < 0) { //leser: 0
+      perror("Fehler bei semctl \n");    
+      exit(1);
+    }
+      printf("initsem() fertig\n");
 }
 
 int main(){
@@ -74,12 +103,11 @@ int main(){
     perror("Fehler bei ftok \n");
     exit(1);
   }
-  if((sem_id = semget(sem_key, 5, IPC_CREAT | 0666)) < 0) { 
+  if((sem_id = semget(sem_key, 3, IPC_CREAT | 0666)) < 0) { //0 -> mutex; 1 -> writer; 2 -> reader; 
     perror("Fehler bei semget \n");
     exit(1);
   }
 
-  printf("initsem()\n");
   init_sem();
 
   for(int u=0;u<7;u++) {
